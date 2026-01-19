@@ -1,15 +1,14 @@
 class Instrument {
-  int id;
-  String name;
-  String category;
-  int quantity;
-  int available;
-  String status;
-  String condition;
-  String location;
+  final String name;
+  final String category;
+  final int quantity;
+  final int available;
+  final String status;
+  final String condition;
+  final String location;
+  final String lastMaintenance;
 
   Instrument({
-    required this.id,
     required this.name,
     required this.category,
     required this.quantity,
@@ -17,5 +16,6 @@ class Instrument {
     required this.status,
     required this.condition,
     required this.location,
+    required this.lastMaintenance,
   });
 }

@@ -1,21 +1,29 @@
 import 'package:flutter/material.dart';
-import 'core/theme.dart';
-import 'screens/login_screen.dart';
+import 'screens/common/login_screen.dart';
+import 'screens/dashboard_screen.dart';
+import 'screens/staff/manage_requests_screen.dart';
 
 void main() {
-  runApp(const MedLabApp());
+  runApp(const MyApp());
 }
 
-class MedLabApp extends StatelessWidget {
-  const MedLabApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'MedLab Inventory',
-      theme: AppTheme.lightTheme,
-      home: const LoginScreen(),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      initialRoute: '/login',
+      routes: {
+        '/login': (context) => LoginScreen(),
+        '/dashboard': (context) => const DashboardScreen(),
+        '/manage_requests': (context) => const ManageRequestsScreen(),
+      },
     );
   }
 }

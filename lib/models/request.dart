@@ -1,15 +1,15 @@
-class InstrumentRequest {
-  int id;
-  String instrumentName;
-  String purpose;
-  String status;
-  DateTime dateRequested;
+enum RequestStatus { pending, approved, rejected }
 
-  InstrumentRequest({
-    required this.id,
+class Request {
+  final String studentName;
+  final String instrumentName;
+  final String purpose;
+  RequestStatus status;
+
+  Request({
+    required this.studentName,
     required this.instrumentName,
     required this.purpose,
     required this.status,
-    required this.dateRequested,
   });
 }

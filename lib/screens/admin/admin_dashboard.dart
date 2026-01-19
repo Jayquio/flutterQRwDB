@@ -1,5 +1,6 @@
+// lib/screens/admin/admin_dashboard.dart
+
 import 'package:flutter/material.dart';
-import '../../widgets/stat_card.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -10,15 +11,28 @@ class AdminDashboard extends StatelessWidget {
       appBar: AppBar(title: const Text("Admin Dashboard")),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          children: const [
-            StatCard(title: "Total Instruments", value: "24", icon: Icons.biotech),
-            StatCard(title: "Available", value: "15", icon: Icons.check_circle),
-            StatCard(title: "In Use", value: "9", icon: Icons.hourglass_bottom),
-            StatCard(title: "Pending Requests", value: "4", icon: Icons.list_alt),
+        child: Column(
+          children: [
+            const Text(
+              "Manage Instruments and Requests",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            // Manage Instruments button
+            ElevatedButton(
+              onPressed: () {
+                // Navigate to manage instruments screen
+              },
+              child: const Text("Manage Instruments"),
+            ),
+            const SizedBox(height: 10),
+            // Manage Requests button
+            ElevatedButton(
+              onPressed: () {
+                // Navigate to manage requests screen
+              },
+              child: const Text("Manage Requests"),
+            ),
           ],
         ),
       ),

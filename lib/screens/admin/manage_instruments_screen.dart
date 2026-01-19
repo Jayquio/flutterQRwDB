@@ -1,83 +1,77 @@
+// lib/screens/admin/manage_requests_screen.dart
+
 import 'package:flutter/material.dart';
 import '../../data/dummy_data.dart';
-import '../../models/instrument.dart';
-import 'instrument_form_screen.dart';
+import '../../models/request.dart';
 
-class ManageInstrumentsScreen extends StatefulWidget {
-  const ManageInstrumentsScreen({super.key});
+class ManageRequestsScreen extends StatefulWidget {
+  const ManageRequestsScreen({super.key});
 
   @override
-  State<ManageInstrumentsScreen> createState() =>
-      _ManageInstrumentsScreenState();
+  State<ManageRequestsScreen> createState() => _ManageRequestsScreenState();
 }
 
-class _ManageInstrumentsScreenState extends State<ManageInstrumentsScreen> {
-
-  void _deleteInstrument(int id) {
+class _ManageRequestsScreenState extends State<ManageRequestsScreen> {
+  // Handling request updates: approve or reject
+  void _updateRequestStatus(int index, RequestStatus status) {
     setState(() {
-      instruments.removeWhere((inst) => inst.id == id);
+      requests[index].status = status;
     });
+  }
+
+  Color _getStatusColor(RequestStatus status) {
+    switch (status) {
+      case RequestStatus.approved:
+        return Colors.green;
+      case RequestStatus.rejected:
+        return Colors.red;
+      case RequestStatus.pending:
+        return Colors.orange;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Manage Instruments"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => InstrumentFormScreen(),
-                ),
-              );
-              setState(() {});
-            },
-          )
-        ],
-      ),
+      appBar: AppBar(title: const Text("Manage Requests")),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: instruments.length,
+        itemCount: requests.length,
         itemBuilder: (context, index) {
-          final Instrument inst = instruments[index];
+          final request = requests[index];
           return Card(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             elevation: 6,
             margin: const EdgeInsets.only(bottom: 16),
-            child: ListTile(
-              title: Text(inst.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Column(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Category: ${inst.category}"),
-                  Text("Available: ${inst.available}/${inst.quantity}"),
-                  Text("Status: ${inst.status}"),
-                  Text("Location: ${inst.location}"),
-                ],
-              ),
-              trailing: PopupMenuButton(
-                onSelected: (value) {
-                  if (value == 'edit') {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            InstrumentFormScreen(instrument: inst),
+                  Text(
+                    request.studentName,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  Text("Instrument: ${request.instrumentName}"),
+                  const SizedBox(height: 6),
+                  Text("Status: ${request.status.name}",
+                      style: TextStyle(color: _getStatusColor(request.status))),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => _updateRequestStatus(index, RequestStatus.approved),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        child: const Text("Approve"),
                       ),
-                    ).then((_) => setState(() {}));
-                  } else if (value == 'delete') {
-                    _deleteInstrument(inst.id);
-                  }
-                },
-                itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'edit', child: Text("Edit")),
-                  const PopupMenuItem(value: 'delete', child: Text("Delete")),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: () => _updateRequestStatus(index, RequestStatus.rejected),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: const Text("Reject"),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

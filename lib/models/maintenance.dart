@@ -1,17 +1,17 @@
-class MaintenanceLog {
-  int id;
-  String instrumentName;
-  String issue;
-  String actionTaken;
-  String status;
-  DateTime date;
+class Maintenance {
+  final String instrumentName;
+  final String technician;
+  final String date;
+  final String type;
+  final String notes;
+  final String status;
 
-  MaintenanceLog({
-    required this.id,
+  Maintenance({
     required this.instrumentName,
-    required this.issue,
-    required this.actionTaken,
-    required this.status,
+    required this.technician,
     required this.date,
+    required this.type,
+    required this.notes,
+    required this.status,
   });
 }

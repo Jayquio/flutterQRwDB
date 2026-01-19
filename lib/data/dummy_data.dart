@@ -1,11 +1,9 @@
-import '../models/instrument.dart';
-import '../models/request.dart';
-import '../models/maintenance.dart';
+import 'package:flutter_application_inventorymanagement/models/instrument.dart';
+import 'package:flutter_application_inventorymanagement/models/maintenance.dart';
+import 'package:flutter_application_inventorymanagement/models/request.dart';
 
-/// GLOBAL instrument list
 List<Instrument> instruments = [
   Instrument(
-    id: 1,
     name: 'Microscope Olympus CX23',
     category: 'Microscopy',
     quantity: 5,
@@ -13,20 +11,50 @@ List<Instrument> instruments = [
     status: 'Available',
     condition: 'Good',
     location: 'Lab Room A',
+    lastMaintenance: '2024-10-15',
+  ),
+  Instrument(
+    name: 'Centrifuge Machine',
+    category: 'Sample Processing',
+    quantity: 3,
+    available: 2,
+    status: 'Available',
+    condition: 'Good',
+    location: 'Lab Room B',
+    lastMaintenance: '2024-09-20',
   ),
 ];
 
-/// GLOBAL student requests
-List<InstrumentRequest> studentRequests = [];
-
-
-List<MaintenanceLog> maintenanceLogs = [
-  MaintenanceLog(
-    id: 1,
+List<Request> requests = [
+  Request(
+    studentName: 'John Dela Cruz',
+    instrumentName: 'Microscope Olympus CX23',
+    purpose: 'Cell study experiment',
+    status: RequestStatus.pending,
+  ),
+  Request(
+    studentName: 'Maria Santos',
     instrumentName: 'Centrifuge Machine',
-    issue: 'Abnormal vibration',
-    actionTaken: 'Bearing replacement',
+    purpose: 'Blood sample processing',
+    status: RequestStatus.approved,
+  ),
+];
+
+List<Maintenance> maintenanceRecords = [
+  Maintenance(
+    instrumentName: 'Microscope Olympus CX23',
+    technician: 'John Doe',
+    date: '2024-10-15',
+    type: 'Routine Maintenance',
+    notes: 'Cleaned and calibrated',
     status: 'Completed',
-    date: DateTime.now(),
+  ),
+  Maintenance(
+    instrumentName: 'Centrifuge Machine',
+    technician: 'Jane Smith',
+    date: '2024-09-20',
+    type: 'Calibration',
+    notes: 'Speed calibration completed',
+    status: 'Completed',
   ),
 ];
