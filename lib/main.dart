@@ -9,6 +9,7 @@ import 'screens/staff/manage_requests_screen.dart';
 import 'screens/admin/manage_instruments_screen.dart';
 import 'screens/admin/user_management_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
+import 'data/app_config_service.dart';
 import 'screens/admin/transaction_logs_screen.dart';
 import 'screens/admin/notification_center_screen.dart';
 import 'screens/staff/staff_dashboard.dart';
@@ -23,6 +24,7 @@ import 'screens/common/layout_preview_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppConfigService.instance.loadAndApplyBaseUrl();
   await NotificationService.instance.loadFromStorage();
   NotificationService.instance.connectWebSocket();
   NotificationService.instance.startAutoRefresh();

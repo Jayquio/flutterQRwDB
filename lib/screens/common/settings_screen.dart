@@ -1,6 +1,8 @@
 // lib/screens/common/settings_screen.dart
 
 import 'package:flutter/material.dart';
+import '../../data/app_config_service.dart';
+import '../../data/api_client.dart';
 
 class SettingsScreen extends StatelessWidget {
   final String userRole;
@@ -23,6 +25,56 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          Card(
+            elevation: 4,
+            child: ListTile(
+              leading: const Icon(Icons.cloud, color: Colors.blueGrey),
+              title: const Text('API Server'),
+              subtitle: Text(AppConfigService.instance.baseUrl.isEmpty
+                  ? 'Default URL'
+                  : AppConfigService.instance.baseUrl),
+              trailing: const Icon(Icons.edit),
+              onTap: () async {
+                final controller = TextEditingController(
+                  text: AppConfigService.instance.baseUrl.isEmpty
+                      ? 'http://192.168.1.88/inventory_api'
+                      : AppConfigService.instance.baseUrl,
+                );
+                final newUrl = await showDialog<String>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Set API Base URL'),
+                    content: TextField(
+                      controller: controller,
+                      decoration: const InputDecoration(
+                        hintText: 'http://192.168.1.88/inventory_api',
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, controller.text),
+                        child: const Text('Save'),
+                      ),
+                    ],
+                  ),
+                );
+                if (newUrl != null && newUrl.trim().isNotEmpty) {
+                  await AppConfigService.instance.setBaseUrl(newUrl);
+                  ApiClient.setBaseUrl(AppConfigService.instance.baseUrl);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('API set to ${AppConfigService.instance.baseUrl}')),
+                    );
+                  }
+                }
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
           // Profile Settings
           Card(
             elevation: 4,
