@@ -297,37 +297,91 @@ class _AdminDashboardBodyState extends State<_AdminDashboardBody> {
                         ? const Text('No recent transactions.')
                         : Column(
                             children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.receipt_long),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'Transaction Logs',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  if (unread > 0)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.red.shade600,
-                                        borderRadius: BorderRadius.circular(12),
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final narrow = constraints.maxWidth < 360;
+                                  if (narrow) {
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisSize: MainAxisSize.max,
+                                          children: [
+                                            const Icon(Icons.receipt_long),
+                                            const SizedBox(width: 8),
+                                            const Expanded(
+                                              child: Text(
+                                                'Transaction Logs',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            if (unread > 0)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.red.shade600,
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                child: Text(
+                                                  '$unread',
+                                                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Align(
+                                          alignment: Alignment.centerRight,
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: TextButton.icon(
+                                              onPressed: () => Navigator.pushNamed(context, '/notification_center'),
+                                              icon: const Icon(Icons.open_in_new),
+                                              label: const Text('Open Center'),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }
+                                  return Row(
+                                    children: [
+                                      const Icon(Icons.receipt_long),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Transaction Logs',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
                                       ),
-                                      child: Text(
-                                        '$unread',
-                                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                                      const SizedBox(width: 8),
+                                      if (unread > 0)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.shade600,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            '$unread',
+                                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                                          ),
+                                        ),
+                                      const Spacer(),
+                                      TextButton.icon(
+                                        onPressed: () => Navigator.pushNamed(context, '/notification_center'),
+                                        icon: const Icon(Icons.open_in_new),
+                                        label: const Text('Open Center'),
                                       ),
-                                    ),
-                                  const Spacer(),
-                                  TextButton.icon(
-                                    onPressed: () => Navigator.pushNamed(context, '/notification_center'),
-                                    icon: const Icon(Icons.open_in_new),
-                                    label: const Text('Open Center'),
-                                  ),
-                                ],
+                                    ],
+                                  );
+                                },
                               ),
                               const SizedBox(height: 8),
                               ...notifications.map((n) {

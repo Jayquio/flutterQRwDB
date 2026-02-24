@@ -8,6 +8,7 @@ import '../student/student_dashboard.dart';
 import '../../data/auth_service.dart';
 import '../../widgets/module_search_bar.dart';
 import '../../data/notification_service.dart';
+import '../../data/api_client.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,8 +20,9 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _loading = false;
 
-  void _login() {
+  Future<void> _login() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -31,66 +33,76 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    if (username == 'admin' && password == 'admin') {
+    setState(() => _loading = true);
+    try {
+      final result = await ApiClient.instance.login(username: username, password: password);
+      final roleStr = (result['role'] as String).toLowerCase();
       ModuleSearchController.instance.setQuery('');
-      AuthService.instance.setUsername(username);
-      AuthService.instance.setRole(UserRole.admin);
-      NotificationService.instance.add(
-        NotificationItem(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          title: 'User Login',
-          message: 'Admin logged in',
-          type: 'login',
-          timestamp: DateTime.now().toIso8601String(),
-          recipient: 'Admin',
-          priority: 'low',
-        ),
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => AdminDashboard()),
-      );
-    } else if (username == 'staff' && password == 'staff') {
-      ModuleSearchController.instance.setQuery('');
-      AuthService.instance.setUsername(username);
-      AuthService.instance.setRole(UserRole.staff);
-      NotificationService.instance.add(
-        NotificationItem(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          title: 'User Login',
-          message: 'Staff logged in',
-          type: 'login',
-          timestamp: DateTime.now().toIso8601String(),
-          recipient: 'Admin',
-          priority: 'low',
-        ),
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => StaffDashboard()),
-      );
-    } else if (username == 'student' && password == 'student') {
-      ModuleSearchController.instance.setQuery('');
-      AuthService.instance.setUsername(username);
-      AuthService.instance.setRole(UserRole.student);
-      NotificationService.instance.add(
-        NotificationItem(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          title: 'User Login',
-          message: 'Student logged in',
-          type: 'login',
-          timestamp: DateTime.now().toIso8601String(),
-          recipient: 'Admin',
-          priority: 'low',
-        ),
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => StudentDashboard()),
-      );
-    } else {
+      AuthService.instance.setUsername(result['username'] as String);
+      if (roleStr == 'admin') {
+        AuthService.instance.setRole(UserRole.admin);
+        NotificationService.instance.add(
+          NotificationItem(
+            id: DateTime.now().microsecondsSinceEpoch.toString(),
+            title: 'User Login',
+            message: 'Admin logged in',
+            type: 'login',
+            timestamp: DateTime.now().toIso8601String(),
+            recipient: 'Admin',
+            priority: 'low',
+          ),
+        );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => AdminDashboard()),
+          );
+        }
+      } else if (roleStr == 'staff') {
+        AuthService.instance.setRole(UserRole.staff);
+        NotificationService.instance.add(
+          NotificationItem(
+            id: DateTime.now().microsecondsSinceEpoch.toString(),
+            title: 'User Login',
+            message: 'Staff logged in',
+            type: 'login',
+            timestamp: DateTime.now().toIso8601String(),
+            recipient: 'Admin',
+            priority: 'low',
+          ),
+        );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => StaffDashboard()),
+          );
+        }
+      } else {
+        AuthService.instance.setRole(UserRole.student);
+        NotificationService.instance.add(
+          NotificationItem(
+            id: DateTime.now().microsecondsSinceEpoch.toString(),
+            title: 'User Login',
+            message: 'Student logged in',
+            type: 'login',
+            timestamp: DateTime.now().toIso8601String(),
+            recipient: 'Admin',
+            priority: 'low',
+          ),
+        );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => StudentDashboard()),
+          );
+        }
+      }
+      setState(() => _loading = false);
+      return;
+    } catch (e) {
+      setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid credentials')),
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
       );
     }
   }
@@ -254,7 +266,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                     child: ElevatedButton(
-                      onPressed: _login,
+                      onPressed: _loading ? null : _login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
@@ -262,14 +274,23 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        "Sign In",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
+                      child: _loading
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Text(
+                              "Sign In",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -278,41 +299,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     icon: const Icon(Icons.qr_code_scanner),
                     label: const Text('Sign in with QR'),
                   ),
-                  const SizedBox(height: 20),
-                  // Demo Credentials
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0F4FF),
-                      border: Border.all(color: const Color(0xFFD0E0FF)),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: const [
-                        Text(
-                          "Demo Credentials",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF667EEA),
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Admin: admin / admin",
-                          style: TextStyle(fontSize: 12, color: Color(0xFF667EEA)),
-                        ),
-                        Text(
-                          "Staff: staff / staff",
-                          style: TextStyle(fontSize: 12, color: Color(0xFF667EEA)),
-                        ),
-                        Text(
-                          "Student: student / student",
-                          style: TextStyle(fontSize: 12, color: Color(0xFF667EEA)),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),

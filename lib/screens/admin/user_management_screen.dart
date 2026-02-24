@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../widgets/search_bar.dart';
+import '../../data/api_client.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -51,72 +52,88 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     showDialog(
       context: context,
       builder: (context) {
-        final nameController = TextEditingController();
-        final emailController = TextEditingController();
+        final usernameController = TextEditingController();
+        final passwordController = TextEditingController();
         String selectedRole = 'Student';
-        String selectedStatus = 'Active';
+        bool submitting = false;
 
-        return AlertDialog(
-          title: const Text('Add New User'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Full Name'),
-                ),
-                TextField(
-                  controller: emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedRole,
-                  decoration: const InputDecoration(labelText: 'Role'),
-                  items: ['Admin', 'Staff', 'Student'].map((role) {
-                    return DropdownMenuItem(value: role, child: Text(role));
-                  }).toList(),
-                  onChanged: (value) => selectedRole = value!,
-                ),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedStatus,
-                  decoration: const InputDecoration(labelText: 'Status'),
-                  items: ['Active', 'Inactive'].map((status) {
-                    return DropdownMenuItem(value: status, child: Text(status));
-                  }).toList(),
-                  onChanged: (value) => selectedStatus = value!,
-                ),
-              ],
+        return StatefulBuilder(
+          builder: (context, setStateDialog) => AlertDialog(
+            title: const Text('Create New User'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: usernameController,
+                    decoration: const InputDecoration(labelText: 'Username'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(labelText: 'Password'),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: selectedRole,
+                    decoration: const InputDecoration(labelText: 'Role'),
+                    items: const [
+                      DropdownMenuItem(value: 'Admin', child: Text('Admin')),
+                      DropdownMenuItem(value: 'Staff', child: Text('Staff')),
+                      DropdownMenuItem(value: 'Student', child: Text('Student')),
+                    ],
+                    onChanged: (v) => setStateDialog(() => selectedRole = v ?? 'Student'),
+                  ),
+                ],
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: submitting ? null : () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: submitting
+                    ? null
+                    : () async {
+                        final u = usernameController.text.trim();
+                        final p = passwordController.text;
+                        if (u.isEmpty || p.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Enter username and password')),
+                          );
+                          return;
+                        }
+                        setStateDialog(() => submitting = true);
+                        try {
+                          final role = selectedRole.toLowerCase();
+                          await ApiClient.instance.createUser(username: u, password: p, role: role);
+                          setState(() {
+                            _users.add({
+                              'id': DateTime.now().millisecondsSinceEpoch.toString(),
+                              'name': u,
+                              'email': '$u@local',
+                              'role': selectedRole,
+                              'status': 'Active',
+                              'lastLogin': 'Never'
+                            });
+                          });
+                          if (context.mounted) Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('User created in database')),
+                          );
+                        } catch (e) {
+                          setStateDialog(() => submitting = false);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                          );
+                        }
+                      },
+                child: const Text('Create'),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (nameController.text.isNotEmpty && emailController.text.isNotEmpty) {
-                  setState(() {
-                    _users.add({
-                      'id': DateTime.now().millisecondsSinceEpoch.toString(),
-                      'name': nameController.text,
-                      'email': emailController.text,
-                      'role': selectedRole,
-                      'status': selectedStatus,
-                      'lastLogin': 'Never'
-                    });
-                  });
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('User added successfully!')),
-                  );
-                }
-              },
-              child: const Text('Add'),
-            ),
-          ],
         );
       },
     );
@@ -127,71 +144,87 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     showDialog(
       context: context,
       builder: (context) {
-        final nameController = TextEditingController(text: user['name']);
-        final emailController = TextEditingController(text: user['email']);
         String selectedRole = user['role'];
         String selectedStatus = user['status'];
+        final passwordController = TextEditingController();
+        bool submitting = false;
 
-        return AlertDialog(
-          title: const Text('Edit User'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Full Name'),
-                ),
-                TextField(
-                  controller: emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedRole,
-                  decoration: const InputDecoration(labelText: 'Role'),
-                  items: ['Admin', 'Staff', 'Student'].map((role) {
-                    return DropdownMenuItem(value: role, child: Text(role));
-                  }).toList(),
-                  onChanged: (value) => selectedRole = value!,
-                ),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedStatus,
-                  decoration: const InputDecoration(labelText: 'Status'),
-                  items: ['Active', 'Inactive'].map((status) {
-                    return DropdownMenuItem(value: status, child: Text(status));
-                  }).toList(),
-                  onChanged: (value) => selectedStatus = value!,
-                ),
-              ],
+        return StatefulBuilder(
+          builder: (context, setStateDialog) => AlertDialog(
+            title: Text('Edit ${user['name']}'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<String>(
+                    value: selectedRole,
+                    decoration: const InputDecoration(labelText: 'Role'),
+                    items: const [
+                      DropdownMenuItem(value: 'Admin', child: Text('Admin')),
+                      DropdownMenuItem(value: 'Staff', child: Text('Staff')),
+                      DropdownMenuItem(value: 'Student', child: Text('Student')),
+                    ],
+                    onChanged: (v) => setStateDialog(() => selectedRole = v ?? selectedRole),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(labelText: 'New Password (optional)'),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: selectedStatus,
+                    decoration: const InputDecoration(labelText: 'Status (UI only)'),
+                    items: const [
+                      DropdownMenuItem(value: 'Active', child: Text('Active')),
+                      DropdownMenuItem(value: 'Inactive', child: Text('Inactive')),
+                    ],
+                    onChanged: (v) => setStateDialog(() => selectedStatus = v ?? selectedStatus),
+                  ),
+                ],
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: submitting ? null : () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: submitting
+                    ? null
+                    : () async {
+                        setStateDialog(() => submitting = true);
+                        try {
+                          final username = user['name'];
+                          final pw = passwordController.text.trim();
+                          await ApiClient.instance.updateUser(
+                            username: username,
+                            role: selectedRole.toLowerCase(),
+                            password: pw.isEmpty ? null : pw,
+                          );
+                          setState(() {
+                            _users[index] = {
+                              ...user,
+                              'role': selectedRole,
+                              'status': selectedStatus,
+                            };
+                          });
+                          if (context.mounted) Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('User updated in database')),
+                          );
+                        } catch (e) {
+                          setStateDialog(() => submitting = false);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                          );
+                        }
+                      },
+                child: const Text('Save'),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (nameController.text.isNotEmpty && emailController.text.isNotEmpty) {
-                  setState(() {
-                    _users[index] = {
-                      ...user,
-                      'name': nameController.text,
-                      'email': emailController.text,
-                      'role': selectedRole,
-                      'status': selectedStatus,
-                    };
-                  });
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('User updated successfully!')),
-                  );
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
         );
       },
     );
@@ -209,14 +242,22 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                _users.removeAt(index);
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('User deleted successfully!')),
-              );
+            onPressed: () async {
+              try {
+                final username = _users[index]['name'];
+                await ApiClient.instance.deleteUser(username: username);
+                setState(() {
+                  _users.removeAt(index);
+                });
+                if (context.mounted) Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('User deleted from database')),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                );
+              }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
