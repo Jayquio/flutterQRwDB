@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io' as io show NetworkInterface, InternetAddress;
+import 'dart:io' as io;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,6 +34,15 @@ class AppConfigService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> detectAndApply() async {
+    final detected = await _detectBaseUrl();
+    if (detected != null && detected.isNotEmpty) {
+      await setBaseUrl(detected);
+      return true;
+    }
+    return false;
+  }
+
   Future<String?> _detectBaseUrl() async {
     // Skip on web; rely on defaults
     if (kIsWeb) return 'http://localhost/inventory_api';
@@ -49,7 +58,7 @@ class AppConfigService extends ChangeNotifier {
     // Add LAN IPs of the current device (useful if server is same machine and phones need LAN URL)
     try {
       final interfaces = await io.NetworkInterface.list(
-        type: io.NetworkInterfaceType.any,
+        type: io.InternetAddressType.any,
         includeLoopback: false,
       );
       for (final iface in interfaces) {

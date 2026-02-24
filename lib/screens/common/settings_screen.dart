@@ -74,6 +74,27 @@ class SettingsScreen extends StatelessWidget {
               },
             ),
           ),
+          const SizedBox(height: 8),
+          Card(
+            elevation: 4,
+            child: ListTile(
+              leading: const Icon(Icons.search, color: Colors.green),
+              title: const Text('Detect API Server'),
+              subtitle: const Text('Auto-detect and prefill LAN URL'),
+              onTap: () async {
+                final ok = await AppConfigService.instance.detectAndApply();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(ok
+                          ? 'Detected: ${AppConfigService.instance.baseUrl}'
+                          : 'No server detected; set URL manually'),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
           const SizedBox(height: 16),
           // Profile Settings
           Card(
